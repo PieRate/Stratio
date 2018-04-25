@@ -1,4 +1,4 @@
-package GameControl;
+package control;
 
 public class Player {
 

@@ -1,5 +1,5 @@
-package GameObjects;
-import GameControl.Player;
+package pieces;
+import control.Player;
 
 public class Structure {
 	public int health;
