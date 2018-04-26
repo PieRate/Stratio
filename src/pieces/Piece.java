@@ -3,12 +3,15 @@ package pieces;
 import control.Player;
 
 public class Piece {
-	public int maxHealth;
-	public int HP;
-	public int armour;
-	public int damage;
-	public int attackSpeed;
-	public int radius;
-	public String name;
-	public Player player;
+	protected int maxHealth;
+	protected int HP;
+	protected int armour;
+	protected int damage;
+	protected int attackSpeed;
+	protected int radius;
+	protected String name;
+	protected Player player;
+	protected double consTime;
+	static protected int goldCost;
+	static protected int gemCost;
 }
