@@ -97,24 +97,31 @@ public class Demo {
 		// Set the clear color
 		glClearColor(1.0f, 1.0f, 0.0f, 0.0f);
 		
-		
-		float unit_square = 1/50;
-		float square_size = 1;
-		float unit_center_x = 0;
-		float unit_center_y = 0;
+		MemoryStack stack = stackPush();
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the ESCAPE key.
 		while ( !glfwWindowShouldClose(window) ) {
+			IntBuffer screen_width_buffer = stack.mallocInt(1);
+			IntBuffer screen_height_buffer = stack.mallocInt(1);
+			glfwGetWindowSize(window, screen_width_buffer, screen_height_buffer);
+			int screen_width = screen_width_buffer.get();
+			int screen_height = screen_height_buffer.get();
+			float ratio = ((float) screen_width) / ((float) screen_height);
+			float unit_square_x = 1f / 10f;
+			float unit_square_y = unit_square_x * ratio;
+			float square_size = 1;
+			float unit_center_x = 0;
+			float unit_center_y = 0;
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 			glBegin(GL_QUADS);
 			glColor3f(1f,0f,0f);
-			glVertex2f(unit_center_x + square_size/2 , unit_center_y + square_size/2);
+			glVertex2f(unit_square_x * (unit_center_x + square_size / 2f) , unit_square_y * (unit_center_y + square_size / 2f));
 			glColor3f(0f,1f,0f);
-			glVertex2f(unit_center_x - square_size/2 , unit_center_y + square_size/2);
+			glVertex2f(unit_square_x * (unit_center_x - square_size / 2f) , unit_square_y * (unit_center_y + square_size / 2f));
 			glColor3f(0f,0f,1f);
-			glVertex2f(unit_center_x - square_size/2 , unit_center_y - square_size/2);
+			glVertex2f(unit_square_x * (unit_center_x - square_size / 2f) , unit_square_y * (unit_center_y - square_size / 2f));
 			glColor3f(0f,0f,0f);
-			glVertex2f(unit_center_x + square_size/2 , unit_center_y - square_size/2);
+			glVertex2f(unit_square_x * (unit_center_x + square_size / 2f) , unit_square_y * (unit_center_y - square_size / 2f));
 			glEnd();
 
 			glfwSwapBuffers(window); // swap the color buffers
