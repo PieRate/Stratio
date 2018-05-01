@@ -98,20 +98,23 @@ public class Demo {
 		glClearColor(1.0f, 1.0f, 0.0f, 0.0f);
 		
 		
-
+		float unit_square = 1/50;
+		float square_size = 1;
+		float unit_center_x = 0;
+		float unit_center_y = 0;
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the ESCAPE key.
 		while ( !glfwWindowShouldClose(window) ) {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 			glBegin(GL_QUADS);
 			glColor3f(1f,0f,0f);
-			glVertex2f(0.1f,0f);
+			glVertex2f(unit_center_x + square_size/2 , unit_center_y + square_size/2);
 			glColor3f(0f,1f,0f);
-			glVertex2f(0f,0.1f);
+			glVertex2f(unit_center_x - square_size/2 , unit_center_y + square_size/2);
 			glColor3f(0f,0f,1f);
-			glVertex2f(-0.1f,0f);
+			glVertex2f(unit_center_x - square_size/2 , unit_center_y - square_size/2);
 			glColor3f(0f,0f,0f);
-			glVertex2f(0f,-0.1f);
+			glVertex2f(unit_center_x + square_size/2 , unit_center_y - square_size/2);
 			glEnd();
 
 			glfwSwapBuffers(window); // swap the color buffers
