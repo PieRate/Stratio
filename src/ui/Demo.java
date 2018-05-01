@@ -48,7 +48,7 @@ public class Demo {
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
 
 		// Create the window
-		window = glfwCreateWindow(300, 300, "Hello World!", NULL, NULL);
+		window = glfwCreateWindow(1280, 720, "Hello World!", NULL, NULL);
 		if ( window == NULL )
 			throw new RuntimeException("Failed to create the GLFW window");
 
@@ -96,11 +96,23 @@ public class Demo {
 
 		// Set the clear color
 		glClearColor(1.0f, 1.0f, 0.0f, 0.0f);
+		
+		
 
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the ESCAPE key.
 		while ( !glfwWindowShouldClose(window) ) {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
+			glBegin(GL_QUADS);
+			glColor3f(1f,0f,0f);
+			glVertex2f(0.1f,0f);
+			glColor3f(0f,1f,0f);
+			glVertex2f(0f,0.1f);
+			glColor3f(0f,0f,1f);
+			glVertex2f(-0.1f,0f);
+			glColor3f(0f,0f,0f);
+			glVertex2f(0f,-0.1f);
+			glEnd();
 
 			glfwSwapBuffers(window); // swap the color buffers
 
