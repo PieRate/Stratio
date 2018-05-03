@@ -20,9 +20,16 @@ public class Demo {
 	private long window;
 	private int mouseX;
 	private int mouseY;
-	float unit_center_x;
-	float unit_center_y;
-	float ratio;
+	private float unit_center_x;
+	private float unit_center_y;
+	private float ratio;
+	private int squareSpeed;
+	private float unit_target_x;
+	private float unit_target_y;
+	private int screenWidth;
+	private int screenHeight;
+	private float unit_square_x;
+	private float unit_square_y;
 
 	public void run() {
 		System.out.println("Hello LWJGL " + Version.getVersion() + "!");
@@ -70,24 +77,28 @@ public class Demo {
 		
 		try (MemoryStack stack = stackPush()){
 			DoubleBuffer xBuff = stack.mallocDouble(1);
-			DoubleBuffer yBuff = stack.mallocDouble(1);		
+			DoubleBuffer yBuff = stack.mallocDouble(1);
 			glfwSetMouseButtonCallback(window, (window, button, action, mods) -> {
 				if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS){
 					glfwGetCursorPos(window, xBuff, yBuff);
 					mouseX = (int) Math.floor(xBuff.get(0));
 					mouseY = (int) Math.floor(yBuff.get(0));
-					IntBuffer screen_width_buffer = stack.mallocInt(1);
-					IntBuffer screen_height_buffer = stack.mallocInt(1);
-					glfwGetWindowSize(window, screen_width_buffer, screen_height_buffer);
-					float width = ((float) screen_width_buffer.get())/2f;
-					float height = ((float) screen_height_buffer.get())/2f;
-					unit_center_x = (((float)mouseX) - width)/width;
-					unit_center_y = -(((float)mouseY) - height)/height;
-					System.out.println(mouseX);
-					System.out.println(mouseY);
+					float width = ((float) screenWidth)/2f;
+					float height = ((float) screenHeight)/2f;
+					unit_center_x = (((float)mouseX) - width)/width/unit_square_x;
+					unit_center_y = -(((float)mouseY) - height)/height/unit_square_y;
 				}
 			});
 		}
+		
+
+		glfwSetWindowSizeCallback(window, (window, width, height) ->{
+			screenWidth = width;
+			screenHeight = height;
+			ratio = ((float) screenWidth) / ((float) screenHeight);
+			unit_square_x = 1f / 10f;
+			unit_square_y = unit_square_x * ratio;
+		});
 		
 		// Get the thread stack and push a new frame
 		try ( MemoryStack stack = stackPush() ) {
@@ -96,6 +107,17 @@ public class Demo {
 
 			// Get the window size passed to glfwCreateWindow
 			glfwGetWindowSize(window, pWidth, pHeight);
+			
+			screenWidth = pWidth.get(0);
+			screenHeight = pHeight.get(0);
+			ratio = ((float) screenWidth) / ((float) screenHeight);
+			
+			/* Set the size of the grid coordinate unit
+			 * The grid coordinate unit is used to record the location of the objects in game
+			 */
+			unit_square_x = 1f / 10f;
+			unit_square_y = unit_square_x * ratio;
+			
 
 			// Get the resolution of the primary monitor
 			GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
@@ -103,8 +125,8 @@ public class Demo {
 			// Center the window
 			glfwSetWindowPos(
 				window,
-				(vidmode.width() - pWidth.get(0)) / 2,
-				(vidmode.height() - pHeight.get(0)) / 2
+				(vidmode.width() - screenWidth) / 2,
+				(vidmode.height() - screenHeight) / 2
 			);
 		} // the stack frame is popped automatically
 
@@ -132,28 +154,18 @@ public class Demo {
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the ESCAPE key.
 		while ( !glfwWindowShouldClose(window) ) {
-			try (MemoryStack stack = stackPush();){
-				IntBuffer screen_width_buffer = stack.mallocInt(1);
-				IntBuffer screen_height_buffer = stack.mallocInt(1);
-				glfwGetWindowSize(window, screen_width_buffer, screen_height_buffer);
-				int screen_width = screen_width_buffer.get();
-				int screen_height = screen_height_buffer.get();
-				ratio = ((float) screen_width) / ((float) screen_height);
-			}
-			float unit_square_x = 1f / 10f;
-			float unit_square_y = unit_square_x * ratio;
 			float square_size = 1;
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 			glBegin(GL_QUADS);
 			glColor3f(1f,0f,0f);
-			glVertex2f(unit_center_x + unit_square_x * (square_size / 2f) , unit_center_y + unit_square_y * (square_size / 2f));
+			glVertex2f(unit_square_x * (unit_center_x + square_size / 2f) , unit_square_y * (unit_center_y + square_size / 2f));
 			glColor3f(0f,1f,0f);
-			glVertex2f(unit_center_x - unit_square_x * (square_size / 2f) , unit_center_y + unit_square_y * (square_size / 2f));
+			glVertex2f(unit_square_x * (unit_center_x - square_size / 2f) , unit_square_y * (unit_center_y + square_size / 2f));
 			glColor3f(0f,0f,1f);
-			glVertex2f(unit_center_x - unit_square_x * (square_size / 2f) , unit_center_y - unit_square_y * (square_size / 2f));
+			glVertex2f(unit_square_x * (unit_center_x - square_size / 2f) , unit_square_y * (unit_center_y - square_size / 2f));
 			glColor3f(0f,0f,0f);
-			glVertex2f(unit_center_x + unit_square_x * (square_size / 2f) , unit_center_y - unit_square_y * (square_size / 2f));
+			glVertex2f(unit_square_x * (unit_center_x + square_size / 2f) , unit_square_y * (unit_center_y - square_size / 2f));
 			glEnd();
 
 			glfwSwapBuffers(window); // swap the color buffers
