@@ -5,6 +5,7 @@ import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
 
+import java.awt.event.MouseAdapter;
 import java.nio.*;
 
 import static org.lwjgl.glfw.Callbacks.*;
@@ -17,6 +18,11 @@ public class Demo {
 
 	// The window handle
 	private long window;
+	private int mouseX;
+	private int mouseY;
+	float unit_center_x;
+	float unit_center_y;
+	float ratio;
 
 	public void run() {
 		System.out.println("Hello LWJGL " + Version.getVersion() + "!");
@@ -57,7 +63,32 @@ public class Demo {
 			if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
 				glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
 		});
-
+		
+		//set the coordinate of the square
+		unit_center_x = 0;
+		unit_center_y = 0;
+		
+		try (MemoryStack stack = stackPush()){
+			DoubleBuffer xBuff = stack.mallocDouble(1);
+			DoubleBuffer yBuff = stack.mallocDouble(1);		
+			glfwSetMouseButtonCallback(window, (window, button, action, mods) -> {
+				if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS){
+					glfwGetCursorPos(window, xBuff, yBuff);
+					mouseX = (int) Math.floor(xBuff.get(0));
+					mouseY = (int) Math.floor(yBuff.get(0));
+					IntBuffer screen_width_buffer = stack.mallocInt(1);
+					IntBuffer screen_height_buffer = stack.mallocInt(1);
+					glfwGetWindowSize(window, screen_width_buffer, screen_height_buffer);
+					float width = ((float) screen_width_buffer.get())/2f;
+					float height = ((float) screen_height_buffer.get())/2f;
+					unit_center_x = (((float)mouseX) - width)/width;
+					unit_center_y = -(((float)mouseY) - height)/height;
+					System.out.println(mouseX);
+					System.out.println(mouseY);
+				}
+			});
+		}
+		
 		// Get the thread stack and push a new frame
 		try ( MemoryStack stack = stackPush() ) {
 			IntBuffer pWidth = stack.mallocInt(1); // int*
@@ -97,31 +128,32 @@ public class Demo {
 		// Set the clear color
 		glClearColor(1.0f, 1.0f, 0.0f, 0.0f);
 		
-		MemoryStack stack = stackPush();
+
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the ESCAPE key.
 		while ( !glfwWindowShouldClose(window) ) {
-			IntBuffer screen_width_buffer = stack.mallocInt(1);
-			IntBuffer screen_height_buffer = stack.mallocInt(1);
-			glfwGetWindowSize(window, screen_width_buffer, screen_height_buffer);
-			int screen_width = screen_width_buffer.get();
-			int screen_height = screen_height_buffer.get();
-			float ratio = ((float) screen_width) / ((float) screen_height);
+			try (MemoryStack stack = stackPush();){
+				IntBuffer screen_width_buffer = stack.mallocInt(1);
+				IntBuffer screen_height_buffer = stack.mallocInt(1);
+				glfwGetWindowSize(window, screen_width_buffer, screen_height_buffer);
+				int screen_width = screen_width_buffer.get();
+				int screen_height = screen_height_buffer.get();
+				ratio = ((float) screen_width) / ((float) screen_height);
+			}
 			float unit_square_x = 1f / 10f;
 			float unit_square_y = unit_square_x * ratio;
 			float square_size = 1;
-			float unit_center_x = 0;
-			float unit_center_y = 0;
+
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 			glBegin(GL_QUADS);
 			glColor3f(1f,0f,0f);
-			glVertex2f(unit_square_x * (unit_center_x + square_size / 2f) , unit_square_y * (unit_center_y + square_size / 2f));
+			glVertex2f(unit_center_x + unit_square_x * (square_size / 2f) , unit_center_y + unit_square_y * (square_size / 2f));
 			glColor3f(0f,1f,0f);
-			glVertex2f(unit_square_x * (unit_center_x - square_size / 2f) , unit_square_y * (unit_center_y + square_size / 2f));
+			glVertex2f(unit_center_x - unit_square_x * (square_size / 2f) , unit_center_y + unit_square_y * (square_size / 2f));
 			glColor3f(0f,0f,1f);
-			glVertex2f(unit_square_x * (unit_center_x - square_size / 2f) , unit_square_y * (unit_center_y - square_size / 2f));
+			glVertex2f(unit_center_x - unit_square_x * (square_size / 2f) , unit_center_y - unit_square_y * (square_size / 2f));
 			glColor3f(0f,0f,0f);
-			glVertex2f(unit_square_x * (unit_center_x + square_size / 2f) , unit_square_y * (unit_center_y - square_size / 2f));
+			glVertex2f(unit_center_x + unit_square_x * (square_size / 2f) , unit_center_y - unit_square_y * (square_size / 2f));
 			glEnd();
 
 			glfwSwapBuffers(window); // swap the color buffers
