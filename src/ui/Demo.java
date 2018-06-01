@@ -7,6 +7,7 @@ import org.lwjgl.system.*;
 
 import java.awt.event.MouseAdapter;
 import java.nio.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
@@ -22,8 +23,10 @@ public class Demo {
 	private int mouseY;
 	private float unit_center_x;
 	private float unit_center_y;
+	private float unit_dest_x;
+	private float unit_dest_y;
 	private float ratio;
-	private int squareSpeed;
+	private float squareSpeed;
 	private float unit_target_x;
 	private float unit_target_y;
 	private int screenWidth;
@@ -74,6 +77,9 @@ public class Demo {
 		//set the coordinate of the square
 		unit_center_x = 0;
 		unit_center_y = 0;
+		unit_dest_x = 0;
+		unit_dest_y = 0;
+		squareSpeed = 1;
 		
 		try (MemoryStack stack = stackPush()){
 			DoubleBuffer xBuff = stack.mallocDouble(1);
@@ -85,8 +91,8 @@ public class Demo {
 					mouseY = (int) Math.floor(yBuff.get(0));
 					float width = ((float) screenWidth)/2f;
 					float height = ((float) screenHeight)/2f;
-					unit_center_x = (((float)mouseX) - width)/width/unit_square_x;
-					unit_center_y = -(((float)mouseY) - height)/height/unit_square_y;
+					unit_dest_x = (((float)mouseX) - width)/width/unit_square_x;
+					unit_dest_y = -(((float)mouseY) - height)/height/unit_square_y;
 				}
 			});
 		}
@@ -150,11 +156,23 @@ public class Demo {
 		// Set the clear color
 		glClearColor(1.0f, 1.0f, 0.0f, 0.0f);
 		
+		//set sleep time and frame rate, currently set to 60L
+		//TODO: Make framerate a variable
+		long sleepTime = 1000L / 60L;
 
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the ESCAPE key.
 		while ( !glfwWindowShouldClose(window) ) {
+			double distance = Math.sqrt((unit_center_x - unit_dest_x) * (unit_center_x - unit_dest_x) + (unit_center_y - unit_dest_y) * (unit_center_y - unit_dest_y));
 			float square_size = 1;
+			//logic for calculating the current place of the square based on destination and speed
+			if (distance <= (squareSpeed/60)){
+				unit_center_x = unit_dest_x;
+				unit_center_y = unit_dest_y;
+			} else {
+				unit_center_x += (unit_dest_x - unit_center_x) * (squareSpeed/60) / distance;
+				unit_center_y += (unit_dest_y - unit_center_y) * (squareSpeed/60) / distance;
+			}
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 			glBegin(GL_QUADS);
@@ -173,6 +191,7 @@ public class Demo {
 			// Poll for window events. The key callback above will only be
 			// invoked during this call.
 			glfwPollEvents();
+			//glfwWaitEventsTimeout(sleepTime);
 		}
 	}
 
